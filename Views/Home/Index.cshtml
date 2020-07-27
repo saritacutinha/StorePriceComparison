@@ -1,0 +1,112 @@
+﻿@*@model StorePriceComparison.ViewModels.HomeIndexViewModel*@
+@model IEnumerable<StorePriceComparison.Models.Product>
+@{
+    ViewData["Title"] = "Index";
+}
+
+   
+<h1>Index</h1>
+<div class="container">
+    <div class="row">
+         @*BEGIN SEARCH RESULT*@ 
+                         <div class="col-md-12">
+                            <form asp-controller="Home" asp-action="Index" method="get">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Search for a Product" name="SearchString" value="@ViewData["currentFilter"]">
+                                    <div class="input-group-btn">
+                                        <button class="btn btn-default" type="submit"><i class="glyphicon glyphicon-search"></i></button>
+                                    </div>
+                                </div>
+                            </form>
+                            <hr />
+                            
+
+
+                          @if(@ViewData["currentFilter"] != null)
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">Product Name</th>
+                                                <th scope="col">Category</th>
+                                                <th scope="col">Quantity</th>
+                                                <th scope="col">Store Name</th>
+                                                <th scope="col">Price</th>
+
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var product in Model)
+                                            {
+                                                <tr>
+                                                    <td rowspan=@product.Prices.Count> @product.Name</td>
+                                                    <td rowspan=@product.Prices.Count> @product.Category.Name</td>
+
+                                                    @{int i = 0; }
+                                                    @foreach (var price in product.Prices)
+                                                    {
+                                                        if (i > 0)
+                                                        {
+                                                        @:</tr><tr>
+                                                        }
+                                                        <td>@price.Quantity</td>
+                    
+                                                        <td>@price.Store.Name</td>
+                                                        <td id ="@product.ProductID">
+                                                            <div class="price-data" id="@price.StoreID" col_name="price">@price.Amount</div>
+                                                        </td>
+                                                        i++;
+                                                    }
+                                                </tr>
+                                                }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+   @section Scripts
+        {
+            <script>
+                $(function ()
+                {
+                    $('.price-data').on('click', function () {                
+                        $(this).attr('contenteditable', 'true');
+                        $(this).addClass('bg-warning').css('padding', '5px');
+                        $(this).focus();
+                    });
+
+                    $('.price-data').on('focusout', function () {
+                        $(this).removeClass('bg-warning')
+                            .css('padding','');
+                        $.ajax(
+                            {
+                                type: "POST", //HTTP POST Method  
+                                url: "Home/AddNewPrice", // Controller/View
+                                dataType: "json",
+                                data:
+                                { //Passing data  
+                                    ProductId: $(this).closest('td').attr('id'),
+                                    StoreId: $(this).attr('id'),
+                                    Price :$(this).html()
+                                },
+                                success: function (msg) {
+                                    alert(msg);
+                                },
+                                error: function (req, status, error) {
+                                    alert(error);
+                                }
+                            });
+                    });
+
+                });
+            </script>
+         }
+
+
+
+
